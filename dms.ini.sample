@@ -1,0 +1,7 @@
+[dms]
+notify = EMAIL1, EMAIL2
+template:
+    The following publish-o-matic jobs have not completed in the
+    last $hours hours.
+
+        $jobs

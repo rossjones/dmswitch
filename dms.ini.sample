@@ -1,7 +1,17 @@
 [dms]
 notify = EMAIL1, EMAIL2
+from = EMAIL_FROM
+subject = Publish-o-matic error
 template:
     The following publish-o-matic jobs have not completed in the
     last $hours hours.
 
         $jobs
+
+
+[smtp]
+server = SMTP-SERVER
+port = 25
+username =
+password =
+ssl = false

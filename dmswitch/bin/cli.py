@@ -1,9 +1,36 @@
 import ConfigParser
 import os
 import argparse
+import smtplib
 import sys
 
 from dmswitch.switch import (Switch, Check, build_template)
+
+def _get_smtp_connection(config):
+    server = config.get('smtp', 'server', 'localhost')
+    port = config.getint('smtp', 'port') or 25
+    username = config.get('smtp', 'username')
+    password = config.get('smtp', 'password')
+    use_ssl =  config.getboolean('smtp', 'ssl')
+
+    if use_ssl:
+        conn = smtplib.SMTP_SSL(server, port)
+    else:
+        conn = smtplib.SMTP(server, port)
+
+    return conn
+
+def send_email(notify, config, msg):
+    from_address = config.get('dms', 'from')
+    subject = config.get('dms', 'subject')
+
+    try:
+        conn = _get_smtp_connection(config)
+        conn.sendmail(from_address, notify, msg)
+        conn.quit()
+    except Exception, e:
+        print e
+
 
 def main():
     """ Entry point for the console app """
@@ -42,5 +69,9 @@ def main():
             fails.append((name, when,))
 
         if fails:
+            content = build_template(template, fails, args.check)
+
             print "Notifying {}".format(notify)
-            print build_template(template, fails, args.check)
+            print content
+
+            send_email(notify, config, content)

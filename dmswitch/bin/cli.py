@@ -7,16 +7,22 @@ import sys
 from dmswitch.switch import (Switch, Check, build_template)
 
 def _get_smtp_connection(config):
-    server = config.get('smtp', 'server', 'localhost')
-    port = config.getint('smtp', 'port') or 25
+    server_str= config.get('smtp', 'server', 'localhost:25')
+    server, port = server_str.split(":")
+
     username = config.get('smtp', 'username')
     password = config.get('smtp', 'password')
-    use_ssl =  config.getboolean('smtp', 'ssl')
+    use_tls =  config.getboolean('smtp', 'tls')
 
-    if use_ssl:
-        conn = smtplib.SMTP_SSL(server, port)
-    else:
-        conn = smtplib.SMTP(server, port)
+    conn = smtplib.SMTP(server, port)
+    conn.ehlo()
+
+    if use_tls:
+        conn.starttls()
+        conn.ehlo()
+
+    if username and password:
+        conn.login(username, password)
 
     return conn
 
@@ -24,9 +30,14 @@ def send_email(notify, config, msg):
     from_address = config.get('dms', 'from')
     subject = config.get('dms', 'subject')
 
+    headers = ["from: " + from_address,
+               "subject: " + subject,
+               "to: " + notify[0]]
+    headers = "\r\n".join(headers)
+
     try:
         conn = _get_smtp_connection(config)
-        conn.sendmail(from_address, notify, msg)
+        conn.sendmail(from_address, notify,  headers + "\r\n\r\n" + msg)
         conn.quit()
     except Exception, e:
         print e

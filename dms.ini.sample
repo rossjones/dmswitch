@@ -10,8 +10,7 @@ template:
 
 
 [smtp]
-server = SMTP-SERVER
-port = 25
+server = SMTP-SERVER:PORT
 username =
 password =
-ssl = false
+tls = false

@@ -1,5 +1,2 @@
 # this is a namespace package
-try:
-    declare_namespace(__name__)
-except NameError:
-    print "Failed to declare_namespace()"
+__import__('pkg_resources').declare_namespace(__name__)
